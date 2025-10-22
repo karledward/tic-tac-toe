@@ -3,7 +3,8 @@ import { z } from "zod";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { getUserStats, saveGame } from "./db";
+import { getUserStats, saveGame, createGameRoom, getAvailableRooms, getGameRoom } from "./db";
+import { nanoid } from "nanoid";
 import { customAuthRouter } from "./customAuthRouter";
 
 export const appRouter = router({
@@ -56,6 +57,52 @@ export const appRouter = router({
       const stats = await getUserStats(ctx.user.id);
       return stats;
     }),
+  }),
+
+  room: router({
+    /**
+     * Create a new game room
+     */
+    create: protectedProcedure
+      .input(
+        z.object({
+          name: z.string().min(1).max(255),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const roomId = nanoid();
+        
+        const room = await createGameRoom({
+          id: roomId,
+          name: input.name,
+          hostId: ctx.user.id,
+          guestId: null,
+          status: "waiting",
+          currentTurn: "X",
+          boardState: JSON.stringify(["", "", "", "", "", "", "", "", ""]),
+          winnerId: null,
+        });
+
+        return room;
+      }),
+
+    /**
+     * Get all available rooms (waiting for players)
+     */
+    getAvailable: publicProcedure.query(async () => {
+      const rooms = await getAvailableRooms();
+      return rooms;
+    }),
+
+    /**
+     * Get a specific room by ID
+     */
+    getById: publicProcedure
+      .input(z.object({ roomId: z.string() }))
+      .query(async ({ input }) => {
+        const room = await getGameRoom(input.roomId);
+        return room;
+      }),
   }),
 });
 

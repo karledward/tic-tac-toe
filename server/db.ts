@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { games, InsertGame, InsertUser, users } from "../drizzle/schema";
+import { games, gameRooms, InsertGame, InsertGameRoom, InsertUser, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -153,4 +153,91 @@ export async function getUserStats(userId: string) {
     console.error("[Database] Failed to get user stats:", error);
     return { wins: 0, losses: 0, draws: 0, totalGames: 0 };
   }
+}
+
+/**
+ * Create a new game room
+ */
+export async function createGameRoom(room: InsertGameRoom) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create game room: database not available");
+    return null;
+  }
+
+  try {
+    await db.insert(gameRooms).values(room);
+    return room;
+  } catch (error) {
+    console.error("[Database] Failed to create game room:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get a game room by ID
+ */
+export async function getGameRoom(roomId: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get game room: database not available");
+    return null;
+  }
+
+  try {
+    const result = await db.select().from(gameRooms).where(eq(gameRooms.id, roomId)).limit(1);
+    return result.length > 0 ? result[0] : null;
+  } catch (error) {
+    console.error("[Database] Failed to get game room:", error);
+    return null;
+  }
+}
+
+/**
+ * Get all available game rooms (waiting status)
+ */
+export async function getAvailableRooms() {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get available rooms: database not available");
+    return [];
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(gameRooms)
+      .where(eq(gameRooms.status, "waiting"))
+      .orderBy(gameRooms.createdAt);
+    return result;
+  } catch (error) {
+    console.error("[Database] Failed to get available rooms:", error);
+    return [];
+  }
+}
+
+/**
+ * Update a game room
+ */
+export async function updateGameRoom(roomId: string, updates: Partial<InsertGameRoom>) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update game room: database not available");
+    return null;
+  }
+
+  try {
+    await db.update(gameRooms).set(updates).where(eq(gameRooms.id, roomId));
+    return await getGameRoom(roomId);
+  } catch (error) {
+    console.error("[Database] Failed to update game room:", error);
+    throw error;
+  }
+}
+
+/**
+ * Create a game record (alias for saveGame for consistency)
+ */
+export async function createGame(game: InsertGame) {
+  return saveGame(game);
 }
