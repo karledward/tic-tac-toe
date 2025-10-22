@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { toast } from "sonner";
 
 type Player = "X" | "O" | null;
 
@@ -8,6 +11,18 @@ export default function TicTacToe() {
   const [board, setBoard] = useState<Player[]>(Array(9).fill(null));
   const [currentPlayer, setCurrentPlayer] = useState<"X" | "O">("X");
   const [winner, setWinner] = useState<Player | "draw" | null>(null);
+  const { user } = useAuth();
+  
+  const { data: stats, refetch: refetchStats } = trpc.game.getMyStats.useQuery();
+  const saveGameMutation = trpc.game.saveResult.useMutation({
+    onSuccess: () => {
+      refetchStats();
+      toast.success("Game saved!");
+    },
+    onError: (error) => {
+      toast.error(`Failed to save game: ${error.message}`);
+    },
+  });
 
   const winningCombinations = [
     [0, 1, 2],
@@ -49,6 +64,16 @@ export default function TicTacToe() {
     const gameResult = checkWinner(newBoard);
     if (gameResult) {
       setWinner(gameResult);
+      
+      // Save game result to database
+      if (user) {
+        saveGameMutation.mutate({
+          playerXId: user.id,
+          playerOId: user.id, // Single player mode - both players are the same user
+          result: gameResult === "draw" ? "draw" : gameResult,
+          winnerId: gameResult === "draw" ? null : user.id,
+        });
+      }
     } else {
       setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
     }
@@ -64,6 +89,16 @@ export default function TicTacToe() {
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
         <CardTitle className="text-center text-2xl">Tic Tac Toe</CardTitle>
+        {stats && (
+          <div className="text-center text-sm text-muted-foreground mt-2">
+            <div className="flex justify-center gap-4">
+              <span>Wins: {stats.wins}</span>
+              <span>Losses: {stats.losses}</span>
+              <span>Draws: {stats.draws}</span>
+            </div>
+            <div className="mt-1">Total Games: {stats.totalGames}</div>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="text-center text-lg font-semibold">
