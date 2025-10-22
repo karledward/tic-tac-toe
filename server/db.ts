@@ -18,7 +18,7 @@ export async function getDb() {
   return _db;
 }
 
-export async function upsertUser(user: InsertUser): Promise<void> {
+export async function upsertUser(user: Partial<InsertUser> & { id: string }): Promise<void> {
   if (!user.id) {
     throw new Error("User ID is required for upsert");
   }
@@ -30,43 +30,38 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   }
 
   try {
-    const values: InsertUser = {
-      id: user.id,
-    };
-    const updateSet: Record<string, unknown> = {};
-
-    const textFields = ["name", "email", "loginMethod"] as const;
-    type TextField = (typeof textFields)[number];
-
-    const assignNullable = (field: TextField) => {
-      const value = user[field];
-      if (value === undefined) return;
-      const normalized = value ?? null;
-      values[field] = normalized;
-      updateSet[field] = normalized;
-    };
-
-    textFields.forEach(assignNullable);
-
-    if (user.lastSignedIn !== undefined) {
-      values.lastSignedIn = user.lastSignedIn;
-      updateSet.lastSignedIn = user.lastSignedIn;
-    }
-    if (user.role === undefined) {
-      if (user.id === ENV.ownerId) {
-        user.role = 'admin';
-        values.role = 'admin';
-        updateSet.role = 'admin';
+    // Check if user exists
+    const existing = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
+    
+    if (existing.length > 0) {
+      // Update existing user
+      const updateSet: Record<string, unknown> = {};
+      
+      if (user.name !== undefined) updateSet.name = user.name;
+      if (user.email !== undefined) updateSet.email = user.email;
+      if (user.passwordHash !== undefined) updateSet.passwordHash = user.passwordHash;
+      if (user.lastSignedIn !== undefined) updateSet.lastSignedIn = user.lastSignedIn;
+      if (user.role !== undefined) updateSet.role = user.role;
+      
+      if (Object.keys(updateSet).length === 0) {
+        updateSet.lastSignedIn = new Date();
       }
+      
+      await db.update(users).set(updateSet).where(eq(users.id, user.id));
+    } else {
+      // Insert new user - require all fields
+      if (!user.name || !user.email || !user.passwordHash) {
+        throw new Error("Name, email, and passwordHash are required for new users");
+      }
+      
+      await db.insert(users).values({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        passwordHash: user.passwordHash,
+        role: user.role || (user.id === ENV.ownerId ? 'admin' : 'user'),
+      });
     }
-
-    if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
-    }
-
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: updateSet,
-    });
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;

@@ -4,9 +4,12 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { getUserStats, saveGame } from "./db";
+import { customAuthRouter } from "./customAuthRouter";
 
 export const appRouter = router({
   system: systemRouter,
+
+  customAuth: customAuthRouter,
 
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),

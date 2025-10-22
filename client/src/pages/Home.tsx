@@ -1,10 +1,12 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import TicTacToe from "@/components/TicTacToe";
-import { APP_TITLE, getLoginUrl } from "@/const";
+import { APP_TITLE } from "@/const";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 
 export default function Home() {
   const { user, loading, isAuthenticated, logout } = useAuth();
+  const [, setLocation] = useLocation();
 
   if (loading) {
     return (
@@ -15,21 +17,8 @@ export default function Home() {
   }
 
   if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
-        <header className="mb-8">
-          <h1 className="text-5xl font-bold text-center bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            {APP_TITLE}
-          </h1>
-          <p className="text-center mt-4 text-gray-600 dark:text-gray-300">
-            Please log in to play
-          </p>
-        </header>
-        <Button onClick={() => window.location.href = getLoginUrl()} size="lg">
-          Log In
-        </Button>
-      </div>
-    );
+    setLocation("/auth");
+    return null;
   }
 
   return (

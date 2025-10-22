@@ -15,6 +15,13 @@
       "when": 1761114686054,
       "tag": "0001_lying_secret_warriors",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1761115147369,
+      "tag": "0002_cooing_blacklash",
+      "breakpoints": true
     }
   ]
 }
