@@ -33,21 +33,4 @@ export const games = mysqlTable("games", {
 export type Game = typeof games.$inferSelect;
 export type InsertGame = typeof games.$inferInsert;
 
-/**
- * Game rooms table for multiplayer lobby system
- */
-export const gameRooms = mysqlTable("gameRooms", {
-  id: varchar("id", { length: 64 }).primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  hostId: varchar("hostId", { length: 64 }).notNull().references(() => users.id),
-  guestId: varchar("guestId", { length: 64 }).references(() => users.id), // null until someone joins
-  status: mysqlEnum("status", ["waiting", "playing", "finished"]).default("waiting").notNull(),
-  currentTurn: mysqlEnum("currentTurn", ["X", "O"]).default("X"),
-  boardState: text("boardState").notNull(), // JSON array of 9 cells, default set in application code
-  winnerId: varchar("winnerId", { length: 64 }).references(() => users.id),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
 
-export type GameRoom = typeof gameRooms.$inferSelect;
-export type InsertGameRoom = typeof gameRooms.$inferInsert;

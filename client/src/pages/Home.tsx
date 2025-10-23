@@ -23,18 +23,13 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      <header className="mb-8 flex items-center justify-between w-full max-w-2xl">
+      <header className="mb-8 flex items-center justify-between w-full max-w-md">
         <h1 className="text-5xl font-bold text-center bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent flex-1">
           {APP_TITLE}
         </h1>
-        <div className="flex gap-2">
-          <Button variant="default" onClick={() => setLocation("/lobby")}>
-            Multiplayer
-          </Button>
-          <Button variant="outline" onClick={() => logout()}>
-            Logout
-          </Button>
-        </div>
+        <Button variant="outline" onClick={() => logout()}>
+          Logout
+        </Button>
       </header>
       <main className="w-full">
         <TicTacToe />
