@@ -13,3 +13,9 @@
 - [ ] Verify API routes are accessible
 - [ ] Test dev/staging/production deployment workflow
 
+
+
+## Current Issues
+- [ ] Fix 405 Method Not Allowed on API routes
+- [ ] Verify Vercel is deploying API functions correctly
+
