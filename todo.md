@@ -16,6 +16,7 @@
 
 
 ## Current Issues
-- [ ] Fix 405 Method Not Allowed on API routes
-- [ ] Verify Vercel is deploying API functions correctly
+- [x] Fix 405 Method Not Allowed on API routes
+- [x] Verify Vercel is deploying API functions correctly
+- [ ] Fix module resolution - server files not found in Vercel deployment
 
