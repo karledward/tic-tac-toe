@@ -1,0 +1,17 @@
+{
+  "buildCommand": "pnpm build",
+  "outputDirectory": "dist/public",
+  "devCommand": "pnpm dev",
+  "installCommand": "pnpm install",
+  "framework": null,
+  "regions": ["iad1"],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "NODE_ENV": "production"
+    }
+  }
+}
+
