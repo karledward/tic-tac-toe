@@ -14,9 +14,9 @@ async function initializeRoutes() {
   if (routesInitialized) return;
   
   const { createExpressMiddleware } = await import("@trpc/server/adapters/express");
-  const { appRouter } = await import("./server/routers");
-  const { createContext } = await import("./server/_core/context");
-  const { registerOAuthRoutes } = await import("./server/_core/oauth");
+  const { appRouter } = await import("../server/routers.js");
+  const { createContext } = await import("../server/_core/context.js");
+  const { registerOAuthRoutes } = await import("../server/_core/oauth.js");
 
   // Register OAuth routes
   registerOAuthRoutes(app);

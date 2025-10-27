@@ -1,16 +1,11 @@
 {
-  "buildCommand": "pnpm build:client",
+  "buildCommand": "pnpm build:client && pnpm build:api",
   "outputDirectory": "dist/public",
   "rewrites": [
     {
       "source": "/api/:path*",
       "destination": "/api"
     }
-  ],
-  "functions": {
-    "api/index.ts": {
-      "includeFiles": "server/**"
-    }
-  }
+  ]
 }
 
